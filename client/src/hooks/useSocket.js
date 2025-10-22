@@ -1,7 +1,11 @@
-import { useCallback } from 'react';
+﻿import { useCallback } from 'react';
 import { io } from 'socket.io-client';
 import create from 'zustand';
 import { useSessionStore } from '../state/useSessionStore.js';
+
+const socketBase = import.meta.env.VITE_BACKEND_ORIGIN
+  ? `${import.meta.env.VITE_BACKEND_ORIGIN.replace(/\/$/, '')}`
+  : '';
 
 const useSocketStore = create((set) => ({
   socket: null,
@@ -18,11 +22,14 @@ export function useSocket() {
   const connect = useCallback(() => {
     if (socket || !token) return;
     const storedGalaxy = window.localStorage.getItem('galaxyId');
-    const namespace = storedGalaxy ? `/galaxy-${storedGalaxy}` : '/';
-    const instance = io(namespace, {
+    const namespace = storedGalaxy ? `/galaxy-${storedGalaxy}` : '';
+    const url = socketBase ? `${socketBase}${namespace}` : namespace || '/';
+
+    const instance = io(url, {
       path: '/socket.io',
       transports: ['websocket'],
-      auth: token ? { token } : undefined
+      auth: token ? { token } : undefined,
+      withCredentials: Boolean(socketBase)
     });
 
     instance.on('connect', () => {
