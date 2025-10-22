@@ -1,5 +1,5 @@
-﻿const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN ? import.meta.env.VITE_BACKEND_ORIGIN.replace(/\/$/, '') : '';
-const API_BASE = backendOrigin ? `${backendOrigin}/api` : '/api';
+const API_BASE = '/api';
+
 async function handleResponse(res) {
   if (!res.ok) {
     const text = await res.text();
@@ -17,27 +17,21 @@ async function handleResponse(res) {
   return res.json();
 }
 
-function buildHeaders(token) {
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  };
-}
-
 export async function apiPost(path, body, token) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    headers: buildHeaders(token),
-    body: JSON.stringify(body),
-    mode: backendOrigin ? 'cors' : undefined
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify(body)
   });
   return handleResponse(res);
 }
 
 export async function apiGet(path, token) {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    mode: backendOrigin ? 'cors' : undefined
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
   });
   return handleResponse(res);
 }
@@ -45,8 +39,7 @@ export async function apiGet(path, token) {
 export async function apiDelete(path, token) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'DELETE',
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    mode: backendOrigin ? 'cors' : undefined
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
   });
   return handleResponse(res);
 }
