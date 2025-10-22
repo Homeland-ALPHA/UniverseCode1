@@ -3,6 +3,8 @@ import { io } from 'socket.io-client';
 import create from 'zustand';
 import { useSessionStore } from '../state/useSessionStore.js';
 
+const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN ? import.meta.env.VITE_BACKEND_ORIGIN.replace(/\/$/, '') : '';
+
 const useSocketStore = create((set) => ({
   socket: null,
   events: [],
@@ -18,11 +20,14 @@ export function useSocket() {
   const connect = useCallback(() => {
     if (socket || !token) return;
     const storedGalaxy = window.localStorage.getItem('galaxyId');
-    const namespace = storedGalaxy ? `/galaxy-${storedGalaxy}` : '/';
-    const instance = io(namespace, {
+    const namespaceSegment = storedGalaxy ? `/galaxy-${storedGalaxy}` : '';
+    const target = backendOrigin ? `${backendOrigin}${namespaceSegment}` : storedGalaxy ? `/galaxy-${storedGalaxy}` : '/';
+
+    const instance = io(target, {
       path: '/socket.io',
       transports: ['websocket'],
-      auth: token ? { token } : undefined
+      auth: token ? { token } : undefined,
+      withCredentials: Boolean(backendOrigin)
     });
 
     instance.on('connect', () => {
@@ -62,5 +67,5 @@ export function useSocket() {
     }
   }, [setSocket]);
 
-  return { connect, disconnect, events };
+  return { connect, disconnect, events, socket: useSocketStore((state) => state.socket) };
 }
