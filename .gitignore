@@ -1,2 +1,4 @@
 server/node_modules/.cache/
 *.tgz
+client/dist/
+server/dist/
